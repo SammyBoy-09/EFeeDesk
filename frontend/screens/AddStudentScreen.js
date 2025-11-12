@@ -6,6 +6,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  TouchableOpacity,
 } from 'react-native';
 import {
   TextInput,
@@ -226,16 +227,22 @@ export default function AddStudentScreen({ navigation }) {
             visible={semesterMenuVisible}
             onDismiss={() => setSemesterMenuVisible(false)}
             anchor={
-              <TextInput
-                label="Semester *"
-                value={`Semester ${formData.sem}`}
-                mode="outlined"
-                editable={false}
-                onPressIn={() => setSemesterMenuVisible(true)}
-                style={styles.input}
-                left={<TextInput.Icon icon="calendar-range" />}
-                right={<TextInput.Icon icon="menu-down" />}
-              />
+              <TouchableOpacity
+                onPress={() => setSemesterMenuVisible(true)}
+                activeOpacity={0.7}
+              >
+                <View pointerEvents="none">
+                  <TextInput
+                    label="Semester *"
+                    value={`Semester ${formData.sem}`}
+                    mode="outlined"
+                    editable={false}
+                    style={styles.input}
+                    left={<TextInput.Icon icon="calendar-range" />}
+                    right={<TextInput.Icon icon="menu-down" />}
+                  />
+                </View>
+              </TouchableOpacity>
             }
           >
             {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (

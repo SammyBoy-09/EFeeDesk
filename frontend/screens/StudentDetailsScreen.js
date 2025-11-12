@@ -18,6 +18,7 @@ import {
   Portal,
   TextInput,
   Text,
+  Snackbar,
 } from 'react-native-paper';
 import api from '../utils/api';
 import { formatCurrency, formatDate } from '../utils/helpers';
@@ -29,6 +30,15 @@ export default function StudentDetailsScreen({ route, navigation }) {
   const [editDialogVisible, setEditDialogVisible] = useState(false);
   const [editedFees, setEditedFees] = useState('');
   const [updating, setUpdating] = useState(false);
+  const [editDetailsVisible, setEditDetailsVisible] = useState(false);
+  const [editedName, setEditedName] = useState('');
+  const [editedUsn, setEditedUsn] = useState('');
+  const [editedDepartment, setEditedDepartment] = useState('');
+  const [editedYear, setEditedYear] = useState('');
+  const [editedSem, setEditedSem] = useState('');
+  const [editedTotalFeesAll, setEditedTotalFeesAll] = useState('');
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
+  const [snackbarMsg, setSnackbarMsg] = useState('');
 
   useEffect(() => {
     fetchStudentDetails();
@@ -39,10 +49,75 @@ export default function StudentDetailsScreen({ route, navigation }) {
       const response = await api.get(`/admin/students/${studentId}`);
       setStudent(response.data.student);
       setEditedFees(response.data.student.totalFees.toString());
+  // prefill edit form fields
+  setEditedName(response.data.student.name || '');
+  setEditedUsn(response.data.student.usn || '');
+  setEditedDepartment(response.data.student.department || '');
+  setEditedYear(response.data.student.year?.toString() || '');
+  setEditedSem(response.data.student.sem?.toString() || '');
+  setEditedTotalFeesAll(response.data.student.totalFees?.toString() || '');
     } catch (error) {
       console.error('Error fetching student details:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUpdateDetails = async () => {
+    // basic validation
+    if (!editedName.trim()) {
+      setSnackbarMsg('Please enter student name');
+      setSnackbarVisible(true);
+      return;
+    }
+    if (!editedUsn.trim()) {
+      setSnackbarMsg('Please enter USN');
+      setSnackbarVisible(true);
+      return;
+    }
+    if (!editedDepartment.trim()) {
+      setSnackbarMsg('Please enter department');
+      setSnackbarVisible(true);
+      return;
+    }
+    if (!editedYear || isNaN(editedYear) || Number(editedYear) < 1 || Number(editedYear) > 4) {
+      setSnackbarMsg('Please enter valid year (1-4)');
+      setSnackbarVisible(true);
+      return;
+    }
+    if (!editedSem || isNaN(editedSem) || Number(editedSem) < 1 || Number(editedSem) > 8) {
+      setSnackbarMsg('Please enter valid semester (1-8)');
+      setSnackbarVisible(true);
+      return;
+    }
+    if (!editedTotalFeesAll || isNaN(editedTotalFeesAll) || Number(editedTotalFeesAll) <= 0) {
+      setSnackbarMsg('Please enter valid total fees');
+      setSnackbarVisible(true);
+      return;
+    }
+
+    setUpdating(true);
+    try {
+      const payload = {
+        name: editedName,
+        usn: editedUsn.toUpperCase(),
+        department: editedDepartment,
+        year: Number(editedYear),
+        sem: Number(editedSem),
+        totalFees: Number(editedTotalFeesAll),
+      };
+
+      const response = await api.patch(`/admin/update-fees/${studentId}`, payload);
+      if (response.data.success) {
+        setEditDetailsVisible(false);
+        fetchStudentDetails();
+        Alert.alert('Success', 'Student details updated successfully');
+      }
+    } catch (error) {
+      console.error('Update student details error:', error);
+      Alert.alert('Error', error.response?.data?.message || 'Failed to update student');
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -117,6 +192,7 @@ export default function StudentDetailsScreen({ route, navigation }) {
       <Appbar.Header>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title="Student Details" />
+        <Appbar.Action icon="pencil" onPress={() => setEditDetailsVisible(true)} />
         <Appbar.Action icon="delete" onPress={handleDeleteStudent} />
       </Appbar.Header>
 
@@ -231,6 +307,74 @@ export default function StudentDetailsScreen({ route, navigation }) {
             </Button>
           </Dialog.Actions>
         </Dialog>
+
+        <Dialog
+          visible={editDetailsVisible}
+          onDismiss={() => setEditDetailsVisible(false)}
+        >
+          <Dialog.Title>Edit Student Details</Dialog.Title>
+          <Dialog.Content>
+            <TextInput
+              label="Full Name"
+              value={editedName}
+              onChangeText={setEditedName}
+              mode="outlined"
+              style={{ marginBottom: 8 }}
+            />
+            <TextInput
+              label="USN"
+              value={editedUsn}
+              onChangeText={(v) => setEditedUsn(v.toUpperCase())}
+              mode="outlined"
+              autoCapitalize="characters"
+              style={{ marginBottom: 8 }}
+            />
+            <TextInput
+              label="Department"
+              value={editedDepartment}
+              onChangeText={setEditedDepartment}
+              mode="outlined"
+              style={{ marginBottom: 8 }}
+            />
+            <TextInput
+              label="Year (1-4)"
+              value={editedYear}
+              onChangeText={setEditedYear}
+              keyboardType="numeric"
+              mode="outlined"
+              style={{ marginBottom: 8 }}
+            />
+            <TextInput
+              label="Semester (1-8)"
+              value={editedSem}
+              onChangeText={setEditedSem}
+              keyboardType="numeric"
+              mode="outlined"
+              style={{ marginBottom: 8 }}
+            />
+            <TextInput
+              label="Total Fees (₹)"
+              value={editedTotalFeesAll}
+              onChangeText={setEditedTotalFeesAll}
+              keyboardType="numeric"
+              mode="outlined"
+            />
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setEditDetailsVisible(false)}>Cancel</Button>
+            <Button onPress={handleUpdateDetails} loading={updating}>
+              Update
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+
+        <Snackbar
+          visible={snackbarVisible}
+          onDismiss={() => setSnackbarVisible(false)}
+          duration={3000}
+        >
+          {snackbarMsg}
+        </Snackbar>
       </Portal>
     </View>
   );

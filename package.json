@@ -1,0 +1,14 @@
+{
+  "name": "efeedesk",
+  "version": "1.0.0",
+  "description": "EFeeDesk - Full-stack college fees payment application",
+  "scripts": {
+    "backend": "cd backend && npm run dev",
+    "frontend": "cd frontend && npm start",
+    "seed": "cd backend && node seedDatabase.js",
+    "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install"
+  },
+  "keywords": ["college", "fees", "payment", "mern", "react-native", "expo"],
+  "author": "",
+  "license": "MIT"
+}

@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "EFeeDesk",
+    "slug": "efeedesk",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#1976d2"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.cambridge.efeedesk"
+    },
+    "android": {
+      "package": "com.cambridge.efeedesk",
+      "permissions": [
+        "NOTIFICATIONS"
+      ]
+    },
+    "web": {},
+    "extra": {
+      "eas": {
+        "projectId": "your-project-id-here"
+      }
+    },
+    "plugins": []
+  }
+}

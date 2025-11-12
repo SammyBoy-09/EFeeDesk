@@ -1,0 +1,238 @@
+import React, { useState } from 'react';
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
+import {
+  TextInput,
+  Button,
+  Appbar,
+  Snackbar,
+  SegmentedButtons,
+  HelperText,
+} from 'react-native-paper';
+import api from '../utils/api';
+import { validateCambridgeEmail } from '../utils/helpers';
+
+export default function AddStudentScreen({ navigation }) {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    department: '',
+    year: '1',
+    totalFees: '',
+  });
+  const [loading, setLoading] = useState(false);
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+
+  const departments = [
+    'Computer Science',
+    'Electronics',
+    'Mechanical',
+    'Civil',
+    'Information Technology',
+    'Electrical',
+  ];
+
+  const handleChange = (field, value) => {
+    setFormData({ ...formData, [field]: value });
+  };
+
+  const validateForm = () => {
+    if (!formData.name.trim()) {
+      showSnackbar('Please enter student name');
+      return false;
+    }
+
+    if (!formData.email.trim()) {
+      showSnackbar('Please enter email');
+      return false;
+    }
+
+    if (!validateCambridgeEmail(formData.email)) {
+      showSnackbar('Email must end with @cambridge.edu.in');
+      return false;
+    }
+
+    if (!formData.password || formData.password.length < 6) {
+      showSnackbar('Password must be at least 6 characters');
+      return false;
+    }
+
+    if (!formData.department) {
+      showSnackbar('Please select department');
+      return false;
+    }
+
+    if (!formData.totalFees || isNaN(formData.totalFees) || Number(formData.totalFees) <= 0) {
+      showSnackbar('Please enter valid total fees');
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
+
+    setLoading(true);
+
+    try {
+      const response = await api.post('/admin/add-student', {
+        ...formData,
+        year: Number(formData.year),
+        totalFees: Number(formData.totalFees),
+      });
+
+      if (response.data.success) {
+        showSnackbar('Student added successfully');
+        setTimeout(() => {
+          navigation.goBack();
+        }, 1500);
+      }
+    } catch (error) {
+      console.error('Add student error:', error);
+      showSnackbar(
+        error.response?.data?.message || 'Failed to add student'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const showSnackbar = (message) => {
+    setSnackbarMessage(message);
+    setSnackbarVisible(true);
+  };
+
+  return (
+    <View style={styles.container}>
+      <Appbar.Header>
+        <Appbar.BackAction onPress={() => navigation.goBack()} />
+        <Appbar.Content title="Add New Student" />
+      </Appbar.Header>
+
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.flex}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <TextInput
+            label="Full Name *"
+            value={formData.name}
+            onChangeText={(value) => handleChange('name', value)}
+            mode="outlined"
+            style={styles.input}
+            left={<TextInput.Icon icon="account" />}
+          />
+
+          <TextInput
+            label="Email *"
+            value={formData.email}
+            onChangeText={(value) => handleChange('email', value)}
+            mode="outlined"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            style={styles.input}
+            left={<TextInput.Icon icon="email" />}
+          />
+          <HelperText type="info">
+            Must end with @cambridge.edu.in
+          </HelperText>
+
+          <TextInput
+            label="Password *"
+            value={formData.password}
+            onChangeText={(value) => handleChange('password', value)}
+            mode="outlined"
+            secureTextEntry
+            autoCapitalize="none"
+            style={styles.input}
+            left={<TextInput.Icon icon="lock" />}
+          />
+          <HelperText type="info">
+            Minimum 6 characters
+          </HelperText>
+
+          <TextInput
+            label="Department *"
+            value={formData.department}
+            onChangeText={(value) => handleChange('department', value)}
+            mode="outlined"
+            style={styles.input}
+            left={<TextInput.Icon icon="school" />}
+          />
+
+          <SegmentedButtons
+            value={formData.year}
+            onValueChange={(value) => handleChange('year', value)}
+            buttons={[
+              { value: '1', label: 'Year 1' },
+              { value: '2', label: 'Year 2' },
+              { value: '3', label: 'Year 3' },
+              { value: '4', label: 'Year 4' },
+            ]}
+            style={styles.input}
+          />
+
+          <TextInput
+            label="Total Fees (₹) *"
+            value={formData.totalFees}
+            onChangeText={(value) => handleChange('totalFees', value)}
+            mode="outlined"
+            keyboardType="numeric"
+            style={styles.input}
+            left={<TextInput.Icon icon="currency-inr" />}
+          />
+
+          <Button
+            mode="contained"
+            onPress={handleSubmit}
+            loading={loading}
+            disabled={loading}
+            style={styles.button}
+            contentStyle={styles.buttonContent}
+          >
+            Add Student
+          </Button>
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+      <Snackbar
+        visible={snackbarVisible}
+        onDismiss={() => setSnackbarVisible(false)}
+        duration={3000}
+      >
+        {snackbarMessage}
+      </Snackbar>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
+  flex: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 16,
+  },
+  input: {
+    marginBottom: 8,
+  },
+  button: {
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  buttonContent: {
+    paddingVertical: 8,
+  },
+});

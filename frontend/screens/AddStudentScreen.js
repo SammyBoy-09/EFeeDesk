@@ -14,6 +14,9 @@ import {
   Snackbar,
   SegmentedButtons,
   HelperText,
+  Menu,
+  Divider,
+  Text,
 } from 'react-native-paper';
 import api from '../utils/api';
 import { validateCambridgeEmail } from '../utils/helpers';
@@ -32,6 +35,8 @@ export default function AddStudentScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [semesterMenuVisible, setSemesterMenuVisible] = useState(false);
 
   const departments = [
     'Computer Science',
@@ -181,10 +186,16 @@ export default function AddStudentScreen({ navigation }) {
             value={formData.password}
             onChangeText={(value) => handleChange('password', value)}
             mode="outlined"
-            secureTextEntry
+            secureTextEntry={!passwordVisible}
             autoCapitalize="none"
             style={styles.input}
             left={<TextInput.Icon icon="lock" />}
+            right={
+              <TextInput.Icon
+                icon={passwordVisible ? "eye-off" : "eye"}
+                onPress={() => setPasswordVisible(!passwordVisible)}
+              />
+            }
           />
           <HelperText type="info">
             Minimum 6 characters
@@ -211,21 +222,33 @@ export default function AddStudentScreen({ navigation }) {
             style={styles.input}
           />
 
-          <SegmentedButtons
-            value={formData.sem}
-            onValueChange={(value) => handleChange('sem', value)}
-            buttons={[
-              { value: '1', label: 'Sem 1' },
-              { value: '2', label: 'Sem 2' },
-              { value: '3', label: 'Sem 3' },
-              { value: '4', label: 'Sem 4' },
-              { value: '5', label: 'Sem 5' },
-              { value: '6', label: 'Sem 6' },
-              { value: '7', label: 'Sem 7' },
-              { value: '8', label: 'Sem 8' },
-            ]}
-            style={styles.input}
-          />
+          <Menu
+            visible={semesterMenuVisible}
+            onDismiss={() => setSemesterMenuVisible(false)}
+            anchor={
+              <TextInput
+                label="Semester *"
+                value={`Semester ${formData.sem}`}
+                mode="outlined"
+                editable={false}
+                onPressIn={() => setSemesterMenuVisible(true)}
+                style={styles.input}
+                left={<TextInput.Icon icon="calendar-range" />}
+                right={<TextInput.Icon icon="menu-down" />}
+              />
+            }
+          >
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
+              <Menu.Item
+                key={sem}
+                onPress={() => {
+                  handleChange('sem', sem.toString());
+                  setSemesterMenuVisible(false);
+                }}
+                title={`Semester ${sem}`}
+              />
+            ))}
+          </Menu>
 
           <TextInput
             label="Total Fees (₹) *"

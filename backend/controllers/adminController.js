@@ -6,10 +6,10 @@ const Payment = require('../models/Payment');
 // @access  Private (Admin only)
 exports.addStudent = async (req, res) => {
   try {
-    const { email, password, name, department, year, totalFees } = req.body;
+    const { email, password, name, usn, department, year, sem, totalFees } = req.body;
 
     // Validate input
-    if (!email || !password || !name || !department || !year || totalFees === undefined) {
+    if (!email || !password || !name || !usn || !department || !year || !sem || totalFees === undefined) {
       return res.status(400).json({
         success: false,
         message: 'Please provide all required fields'
@@ -33,13 +33,24 @@ exports.addStudent = async (req, res) => {
       });
     }
 
+    // Check if USN already exists
+    const existingUSN = await User.findOne({ usn: usn.toUpperCase() });
+    if (existingUSN) {
+      return res.status(400).json({
+        success: false,
+        message: 'Student with this USN already exists'
+      });
+    }
+
     // Create new student
     const student = await User.create({
       email,
       password,
       name,
+      usn: usn.toUpperCase(),
       department,
       year,
+      sem,
       totalFees,
       role: 'student'
     });
@@ -51,9 +62,15 @@ exports.addStudent = async (req, res) => {
         id: student._id,
         email: student.email,
         name: student.name,
+        usn: student.usn,
         department: student.department,
         year: student.year,
+        sem: student.sem,
         totalFees: student.totalFees
+      },
+      credentials: {
+        email: student.email,
+        password: req.body.password // Return the plain password so admin can give it to student
       }
     });
   } catch (error) {
@@ -157,7 +174,7 @@ exports.getStudent = async (req, res) => {
 // @access  Private (Admin only)
 exports.updateStudentFees = async (req, res) => {
   try {
-    const { totalFees, name, department, year } = req.body;
+    const { totalFees, name, usn, department, year, sem } = req.body;
 
     const student = await User.findById(req.params.id);
 
@@ -171,8 +188,10 @@ exports.updateStudentFees = async (req, res) => {
     // Update fields if provided
     if (totalFees !== undefined) student.totalFees = totalFees;
     if (name) student.name = name;
+    if (usn) student.usn = usn.toUpperCase();
     if (department) student.department = department;
     if (year) student.year = year;
+    if (sem) student.sem = sem;
 
     await student.save();
 

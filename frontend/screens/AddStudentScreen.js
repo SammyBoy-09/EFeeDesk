@@ -5,6 +5,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import {
   TextInput,
@@ -20,10 +21,12 @@ import { validateCambridgeEmail } from '../utils/helpers';
 export default function AddStudentScreen({ navigation }) {
   const [formData, setFormData] = useState({
     name: '',
+    usn: '',
     email: '',
     password: '',
     department: '',
     year: '1',
+    sem: '1',
     totalFees: '',
   });
   const [loading, setLoading] = useState(false);
@@ -46,6 +49,11 @@ export default function AddStudentScreen({ navigation }) {
   const validateForm = () => {
     if (!formData.name.trim()) {
       showSnackbar('Please enter student name');
+      return false;
+    }
+
+    if (!formData.usn.trim()) {
+      showSnackbar('Please enter USN');
       return false;
     }
 
@@ -85,15 +93,24 @@ export default function AddStudentScreen({ navigation }) {
     try {
       const response = await api.post('/admin/add-student', {
         ...formData,
+        usn: formData.usn.toUpperCase(),
         year: Number(formData.year),
+        sem: Number(formData.sem),
         totalFees: Number(formData.totalFees),
       });
 
       if (response.data.success) {
-        showSnackbar('Student added successfully');
-        setTimeout(() => {
-          navigation.goBack();
-        }, 1500);
+        const credentials = response.data.credentials;
+        Alert.alert(
+          'Student Created Successfully!',
+          `Name: ${response.data.student.name}\nUSN: ${response.data.student.usn}\n\nLogin Credentials:\nEmail: ${credentials.email}\nPassword: ${credentials.password}\n\nPlease save these credentials and share with the student.`,
+          [
+            {
+              text: 'OK',
+              onPress: () => navigation.goBack(),
+            },
+          ]
+        );
       }
     } catch (error) {
       console.error('Add student error:', error);
@@ -130,6 +147,20 @@ export default function AddStudentScreen({ navigation }) {
             style={styles.input}
             left={<TextInput.Icon icon="account" />}
           />
+
+          <TextInput
+            label="USN (University Serial Number) *"
+            value={formData.usn}
+            onChangeText={(value) => handleChange('usn', value.toUpperCase())}
+            mode="outlined"
+            autoCapitalize="characters"
+            style={styles.input}
+            left={<TextInput.Icon icon="identifier" />}
+            placeholder="e.g., 1CR21CS001"
+          />
+          <HelperText type="info">
+            University Serial Number (Unique ID)
+          </HelperText>
 
           <TextInput
             label="Email *"
@@ -176,6 +207,22 @@ export default function AddStudentScreen({ navigation }) {
               { value: '2', label: 'Year 2' },
               { value: '3', label: 'Year 3' },
               { value: '4', label: 'Year 4' },
+            ]}
+            style={styles.input}
+          />
+
+          <SegmentedButtons
+            value={formData.sem}
+            onValueChange={(value) => handleChange('sem', value)}
+            buttons={[
+              { value: '1', label: 'Sem 1' },
+              { value: '2', label: 'Sem 2' },
+              { value: '3', label: 'Sem 3' },
+              { value: '4', label: 'Sem 4' },
+              { value: '5', label: 'Sem 5' },
+              { value: '6', label: 'Sem 6' },
+              { value: '7', label: 'Sem 7' },
+              { value: '8', label: 'Sem 8' },
             ]}
             style={styles.input}
           />

@@ -34,6 +34,16 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Name is required'],
     trim: true
   },
+  usn: {
+    type: String,
+    required: function() {
+      return this.role === 'student';
+    },
+    unique: true,
+    sparse: true, // Allow null for non-students
+    uppercase: true,
+    trim: true
+  },
   department: {
     type: String,
     required: function() {
@@ -47,6 +57,14 @@ const userSchema = new mongoose.Schema({
     },
     min: 1,
     max: 4
+  },
+  sem: {
+    type: Number,
+    required: function() {
+      return this.role === 'student';
+    },
+    min: 1,
+    max: 8
   },
   totalFees: {
     type: Number,

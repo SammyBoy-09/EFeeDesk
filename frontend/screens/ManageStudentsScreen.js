@@ -87,7 +87,9 @@ export default function ManageStudentsScreen({ navigation }) {
           </View>
 
           <Paragraph style={styles.email}>{item.email}</Paragraph>
-          <Paragraph style={styles.department}>{item.department}</Paragraph>
+          <Paragraph style={styles.info}>
+            USN: {item.usn} | {item.department} | Year {item.year} | Sem {item.sem}
+          </Paragraph>
 
           <View style={styles.feesContainer}>
             <View style={styles.feesRow}>
@@ -208,8 +210,8 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 4,
   },
-  department: {
-    fontSize: 14,
+  info: {
+    fontSize: 13,
     color: '#1976d2',
     marginBottom: 12,
   },

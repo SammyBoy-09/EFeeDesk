@@ -43,8 +43,10 @@ const seedData = async () => {
         password: 'student123',
         role: 'student',
         name: 'John Doe',
+        usn: '1CR21CS101',
         department: 'Computer Science',
         year: 3,
+        sem: 5,
         totalFees: 150000,
       },
       {
@@ -52,8 +54,10 @@ const seedData = async () => {
         password: 'student123',
         role: 'student',
         name: 'Jane Smith',
+        usn: '1CR22EC045',
         department: 'Electronics',
         year: 2,
+        sem: 3,
         totalFees: 140000,
       },
       {
@@ -61,8 +65,10 @@ const seedData = async () => {
         password: 'student123',
         role: 'student',
         name: 'Robert Wilson',
+        usn: '1CR20ME023',
         department: 'Mechanical',
         year: 4,
+        sem: 7,
         totalFees: 160000,
       },
     ];

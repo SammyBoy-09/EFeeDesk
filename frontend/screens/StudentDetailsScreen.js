@@ -125,10 +125,12 @@ export default function StudentDetailsScreen({ route, navigation }) {
           <Card.Content>
             <Title>{student.name}</Title>
             <Paragraph style={styles.email}>{student.email}</Paragraph>
+            <Paragraph style={styles.info}>USN: {student.usn}</Paragraph>
             <Paragraph style={styles.info}>
               Department: {student.department}
             </Paragraph>
             <Paragraph style={styles.info}>Year: {student.year}</Paragraph>
+            <Paragraph style={styles.info}>Semester: {student.sem}</Paragraph>
           </Card.Content>
         </Card>
 

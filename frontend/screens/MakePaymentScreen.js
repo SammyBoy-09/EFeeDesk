@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   StyleSheet,
@@ -17,15 +17,25 @@ import {
   RadioButton,
   Text,
   Divider,
+  Portal,
+  Dialog,
 } from 'react-native-paper';
+import { captureRef } from 'react-native-view-shot';
+import * as Sharing from 'expo-sharing';
 import api from '../utils/api';
 import { formatCurrency } from '../utils/helpers';
+import PaymentReceipt from '../components/PaymentReceipt';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function MakePaymentScreen({ route, navigation }) {
   const { feesDetails } = route.params;
+  const { user } = useAuth();
   const [amount, setAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('mock');
   const [loading, setLoading] = useState(false);
+  const [receiptVisible, setReceiptVisible] = useState(false);
+  const [paymentData, setPaymentData] = useState(null);
+  const receiptRef = useRef();
 
   const handlePayment = async () => {
     // Validation
@@ -69,19 +79,9 @@ export default function MakePaymentScreen({ route, navigation }) {
       });
 
       if (response.data.success) {
-        Alert.alert(
-          'Payment Successful',
-          `Your payment of ${formatCurrency(paymentAmount)} has been processed successfully.`,
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                // Pass refresh flag to parent screen
-                navigation.navigate('StudentDashboard', { refresh: true });
-              },
-            },
-          ]
-        );
+        // Store payment data and show receipt
+        setPaymentData(response.data.payment);
+        setReceiptVisible(true);
       }
     } catch (error) {
       console.error('Payment error:', error);
@@ -92,6 +92,29 @@ export default function MakePaymentScreen({ route, navigation }) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDownloadReceipt = async () => {
+    try {
+      const uri = await captureRef(receiptRef, {
+        format: 'png',
+        quality: 1,
+      });
+
+      await Sharing.shareAsync(uri, {
+        mimeType: 'image/png',
+        dialogTitle: 'Download Payment Receipt',
+        UTI: 'image/png',
+      });
+    } catch (error) {
+      console.error('Download receipt error:', error);
+      Alert.alert('Error', 'Failed to download receipt');
+    }
+  };
+
+  const handleCloseReceipt = () => {
+    setReceiptVisible(false);
+    navigation.navigate('StudentDashboard', { refresh: true });
   };
 
   const setQuickAmount = (percentage) => {
@@ -223,6 +246,35 @@ export default function MakePaymentScreen({ route, navigation }) {
           </Card>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Receipt Dialog */}
+      <Portal>
+        <Dialog
+          visible={receiptVisible}
+          onDismiss={handleCloseReceipt}
+          style={styles.receiptDialog}
+        >
+          <Dialog.Title style={styles.receiptTitle}>Payment Successful!</Dialog.Title>
+          <Dialog.ScrollArea>
+            <ScrollView contentContainerStyle={styles.receiptScrollContent}>
+              <View ref={receiptRef} collapsable={false}>
+                {paymentData && user && (
+                  <PaymentReceipt
+                    payment={paymentData}
+                    student={user}
+                  />
+                )}
+              </View>
+            </ScrollView>
+          </Dialog.ScrollArea>
+          <Dialog.Actions>
+            <Button onPress={handleDownloadReceipt} icon="download">
+              Download Receipt
+            </Button>
+            <Button onPress={handleCloseReceipt}>Close</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
     </View>
   );
 }
@@ -318,5 +370,16 @@ const styles = StyleSheet.create({
   },
   payButtonContent: {
     paddingVertical: 8,
+  },
+  receiptDialog: {
+    maxHeight: '90%',
+  },
+  receiptTitle: {
+    textAlign: 'center',
+    color: '#4caf50',
+  },
+  receiptScrollContent: {
+    paddingHorizontal: 0,
+    alignItems: 'center',
   },
 });

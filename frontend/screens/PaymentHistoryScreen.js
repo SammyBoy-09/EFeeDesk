@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   StyleSheet,
   FlatList,
   RefreshControl,
+  ScrollView,
+  Alert,
 } from 'react-native';
 import {
   Card,
@@ -14,14 +16,25 @@ import {
   Chip,
   Text,
   Divider,
+  Button,
+  Portal,
+  Dialog,
 } from 'react-native-paper';
+import { captureRef } from 'react-native-view-shot';
+import * as Sharing from 'expo-sharing';
 import api from '../utils/api';
 import { formatCurrency, formatDate } from '../utils/helpers';
+import PaymentReceipt from '../components/PaymentReceipt';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function PaymentHistoryScreen({ navigation }) {
+  const { user } = useAuth();
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [receiptVisible, setReceiptVisible] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState(null);
+  const receiptRef = useRef();
 
   useEffect(() => {
     fetchPaymentHistory();
@@ -70,6 +83,31 @@ export default function PaymentHistoryScreen({ navigation }) {
     }
   };
 
+  const handleViewReceipt = (payment) => {
+    if (payment.status === 'success') {
+      setSelectedPayment(payment);
+      setReceiptVisible(true);
+    }
+  };
+
+  const handleDownloadReceipt = async () => {
+    try {
+      const uri = await captureRef(receiptRef, {
+        format: 'png',
+        quality: 1,
+      });
+
+      await Sharing.shareAsync(uri, {
+        mimeType: 'image/png',
+        dialogTitle: 'Download Payment Receipt',
+        UTI: 'image/png',
+      });
+    } catch (error) {
+      console.error('Download receipt error:', error);
+      Alert.alert('Error', 'Failed to download receipt');
+    }
+  };
+
   const renderPayment = ({ item }) => (
     <Card style={styles.card}>
       <Card.Content>
@@ -112,6 +150,18 @@ export default function PaymentHistoryScreen({ navigation }) {
           </View>
         )}
       </Card.Content>
+      {item.status === 'success' && (
+        <Card.Actions>
+          <Button
+            icon="download"
+            mode="outlined"
+            onPress={() => handleViewReceipt(item)}
+            compact
+          >
+            Download Receipt
+          </Button>
+        </Card.Actions>
+      )}
     </Card>
   );
 
@@ -147,6 +197,35 @@ export default function PaymentHistoryScreen({ navigation }) {
           </View>
         }
       />
+
+      {/* Receipt Dialog */}
+      <Portal>
+        <Dialog
+          visible={receiptVisible}
+          onDismiss={() => setReceiptVisible(false)}
+          style={styles.receiptDialog}
+        >
+          <Dialog.Title style={styles.receiptTitle}>Payment Receipt</Dialog.Title>
+          <Dialog.ScrollArea>
+            <ScrollView contentContainerStyle={styles.receiptScrollContent}>
+              <View ref={receiptRef} collapsable={false}>
+                {selectedPayment && user && (
+                  <PaymentReceipt
+                    payment={selectedPayment}
+                    student={user}
+                  />
+                )}
+              </View>
+            </ScrollView>
+          </Dialog.ScrollArea>
+          <Dialog.Actions>
+            <Button onPress={handleDownloadReceipt} icon="download">
+              Download
+            </Button>
+            <Button onPress={() => setReceiptVisible(false)}>Close</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
     </View>
   );
 }
@@ -220,5 +299,15 @@ const styles = StyleSheet.create({
   emptySubtext: {
     fontSize: 14,
     color: '#bbb',
+  },
+  receiptDialog: {
+    maxHeight: '90%',
+  },
+  receiptTitle: {
+    textAlign: 'center',
+  },
+  receiptScrollContent: {
+    paddingHorizontal: 0,
+    alignItems: 'center',
   },
 });

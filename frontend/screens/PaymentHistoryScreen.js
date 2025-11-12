@@ -302,12 +302,15 @@ const styles = StyleSheet.create({
   },
   receiptDialog: {
     maxHeight: '90%',
+    width: '100%',
+    alignSelf: 'center',
   },
   receiptTitle: {
     textAlign: 'center',
   },
   receiptScrollContent: {
-    paddingHorizontal: 0,
+    paddingHorizontal: 16,
     alignItems: 'center',
+    flexGrow: 1,
   },
 });

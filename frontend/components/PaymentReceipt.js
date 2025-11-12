@@ -1,14 +1,16 @@
 import React from 'react';
-import { View, StyleSheet, Text } from 'react-native';
+import { View, StyleSheet, Text, Dimensions } from 'react-native';
 import { Divider } from 'react-native-paper';
 import { formatCurrency, formatDate } from '../utils/helpers';
+
+const { width: screenWidth } = Dimensions.get('window');
 
 export default function PaymentReceipt({ payment, student }) {
   return (
     <View style={styles.receipt}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.collegeName}>Cambridge Institute of Technology</Text>
+        <Text style={styles.collegeName}>Cambridge Institute of Technology North Campus</Text>
         <Text style={styles.subHeader}>Fee Payment Receipt</Text>
       </View>
 
@@ -112,18 +114,20 @@ export default function PaymentReceipt({ payment, student }) {
 const styles = StyleSheet.create({
   receipt: {
     backgroundColor: '#ffffff',
-    padding: 20,
-    width: 350,
+    padding: 16,
+    width: screenWidth - 64,
+    maxWidth: 500,
   },
   header: {
     alignItems: 'center',
     marginBottom: 16,
   },
   collegeName: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#1976d2',
     textAlign: 'center',
+    flexWrap: 'wrap',
   },
   subHeader: {
     fontSize: 16,
@@ -146,16 +150,18 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   label: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#666',
     flex: 1,
+    flexWrap: 'wrap',
   },
   value: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#333',
     flex: 1,
     textAlign: 'right',
     fontWeight: '500',
+    flexWrap: 'wrap',
   },
   successText: {
     color: '#4caf50',
@@ -168,14 +174,16 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   amountLabel: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
+    flexWrap: 'wrap',
   },
   amountValue: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#4caf50',
+    flexWrap: 'wrap',
   },
   footer: {
     marginTop: 16,

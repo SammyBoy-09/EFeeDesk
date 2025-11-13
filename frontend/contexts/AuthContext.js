@@ -40,18 +40,28 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
+      console.log('🔐 Attempting login for:', email);
       const response = await api.post('/auth/login', { email, password });
       const { token, user: userData } = response.data;
 
+      console.log('✅ Login successful. Token received:', token?.substring(0, 20) + '...');
+      
       await storeToken(token);
+      console.log('✅ Token stored in AsyncStorage');
+      
       await storeUser(userData);
+      console.log('✅ User data stored:', userData);
 
       setUser(userData);
       setIsAuthenticated(true);
 
       return { success: true, user: userData };
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('❌ Login error:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data
+      });
       return {
         success: false,
         message: error.response?.data?.message || 'Login failed',

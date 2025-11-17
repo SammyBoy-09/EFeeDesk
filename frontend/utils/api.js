@@ -1,14 +1,13 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Backend API URL
-// PC is on the 130.1.55.136 network (Wi-Fi)
-// If your phone is on the SAME Wi-Fi network (130.1.x.x), use this IP
+// Backend API URL Configuration
+// Using PC's network IP address
 const API_URL = 'http://130.1.55.136:5000/api';
 
 console.log('🔧 API Configuration:');
 console.log('API_URL:', API_URL);
-console.log('Make sure your phone is on the same Wi-Fi: 130.1.x.x network');
+console.log('ℹ️ Backend running on PC, phone connecting via network IP');
 
 const api = axios.create({
   baseURL: API_URL,
